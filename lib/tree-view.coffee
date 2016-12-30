@@ -33,8 +33,6 @@ class TreeView extends View
 
   initialize: (state,allowedFiles) ->
     @allowedFiles = allowedFiles
-    console.log("ALLOL")
-    console.log(@allowedFiles)
     @disposables = new CompositeDisposable
     @focusAfterAttach = false
     @roots = []

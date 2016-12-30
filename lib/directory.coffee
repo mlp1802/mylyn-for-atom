@@ -188,10 +188,6 @@ class Directory
       #filter here
       #
       #if !fullPath.includes(".coffee") then continue
-      console.log("FULL PATH = "+fullPath)
-      console.log("PATH= "+@path)
-
-
       stat = fs.lstatSyncNoException(fullPath)
       symlink = stat.isSymbolicLink?()
       stat = fs.statSyncNoException(fullPath) if symlink

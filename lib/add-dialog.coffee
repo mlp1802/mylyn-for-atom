@@ -18,7 +18,7 @@ class AddDialog extends Dialog
     relativeDirectoryPath += path.sep if relativeDirectoryPath.length > 0
 
     super
-      prompt: "Enter the path for the new " + if isCreatingFile then "file." else "folder."
+      prompt: "Enter the path for the new" + if isCreatingFile then "file." else "folder."
       initialPath: relativeDirectoryPath
       select: false
       iconClass: if isCreatingFile then 'icon-file-add' else 'icon-file-directory-create'
