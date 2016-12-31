@@ -15,7 +15,9 @@ class TaskList extends SelectListView
     close: ->
       @command.dispose()
       @modal.destroy()
+    getFilterKey:->"name"  
     viewForItem:(item)->
+
         if item==@currentTask
           "<li class='status-modified'>#{item.name}</li>"
         else

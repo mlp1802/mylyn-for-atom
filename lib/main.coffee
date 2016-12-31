@@ -1,5 +1,5 @@
 {Disposable, CompositeDisposable} = require 'event-kit'
-{onDidChangeActivePaneItem,allowedFiles,toggleFilter,showTaskList} = require "./mylyn"
+{renameCurrentTask,setView,newTask,onDidChangeActivePaneItem,allowedFiles,getMylyn,setMylyn,toggleFilter,showTaskList} = require "./mylyn"
 path = require 'path'
 
 module.exports =
@@ -7,31 +7,36 @@ module.exports =
   observer: null
 
 
-  activateMylyn:() ->
+  activateMylyn:(state) ->
+    mylyn = state.mylyn
+    if mylyn then setMylyn(mylyn)
+    console.log(mylyn)
+
     @observer =  atom.workspace.onDidChangeActivePaneItem((e)=>
         onDidChangeActivePaneItem(e)
         @createView().updateRoots()
         @createView().revealActiveFile()
         )
 
-
   activate: (@state) ->
-    @activateMylyn()
+    @activateMylyn(@state)
 
     @disposables = new CompositeDisposable
     @state.attached ?= true if @shouldAttach()
-
     @createView() if @state.attached
-
+    setView(@createView())
     @disposables.add atom.commands.add('atom-workspace', {
-      'tree-view:show': => @createView().show()
-      'tree-view:toogle-filter': =>
+      'list:toogle-filter': =>
         toggleFilter()
         @createView().updateRoots()
 
-      'tree-view:tasklist': =>
+      'list:tasklist': =>
           showTaskList(@createView())
+      'list:new-task': =>newTask()
 
+
+      'list:update-view': => @createView().updateRoots()
+      'list:rename-current-task': => renameCurrentTask()
       'tree-view:show': => @createView().show()
       'tree-view:toggle': => @createView().toggle()
       'tree-view:toggle-focus': => @createView().toggleFocus()
@@ -60,10 +65,13 @@ module.exports =
       @treeView?.updateRoots()
 
   serialize: ->
-    if @treeView?
-      @treeView.serialize()
-    else
-      @state
+      if @treeView?
+          r = @treeView.serialize()
+          r.mylyn = getMylyn()
+          r
+       else
+          @state.mylyn = getMylyn()
+          @state
 
   createView: ->
     unless @treeView?
