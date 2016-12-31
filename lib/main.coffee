@@ -7,14 +7,16 @@ path = require 'path'
 FileIcons = require './file-icons'
 
 toRelPath = (path)->atom.project.relativizePath(path)[1]
-currentTask =
-    name:"Task1"
+createTask = (name)->
+    name:name
     files:[]
-task2 =
-    name:"Task2"
-    files:[]
+currentTask = createTask("Task1")
+task2 = createTask("Task2")
+task3 = createTask("Task3")
+task4 = createTask("Task4")
 
-tasks = [currentTask,task2]
+
+tasks = [currentTask,task2,task3,task4]
 showTaskList =(view)->tasklist = new TaskList currentTask, tasks,(task)->
     console.log("task selected ")
     currentTask = task
@@ -50,7 +52,7 @@ onDidChangeActivePaneItem = (e)->
         activePane = atom.workspace.getActivePane()
         path =  toRelPath(activeEditor.getBuffer().getPath())
         addFile(path)
-        #atom.commands.dispatch(workspaceView, 'mylyn:reveal-active-file')
+        #atom.commands.dispatch(workspaceView, 'tree-view:reveal-active-file')
         activePane.activate()
 
 allowedFiles = {
@@ -80,25 +82,25 @@ module.exports =
     @createView() if @state.attached
 
     @disposables.add atom.commands.add('atom-workspace', {
-      'mylyn:show': => @createView().show()
-      'mylyn:toogle-filter': =>
+      'tree-view:show': => @createView().show()
+      'tree-view:toogle-filter': =>
         filterOn = !filterOn
         @createView().updateRoots()
 
-      'mylyn:tasklist': =>
+      'tree-view:tasklist': =>
           showTaskList(@createView())
 
-      'mylyn:show': => @createView().show()
-      'mylyn:toggle': => @createView().toggle()
-      'mylyn:toggle-focus': => @createView().toggleFocus()
-      'mylyn:reveal-active-file': =>  @createView().revealActiveFile()
-      'mylyn:toggle-side': => @createView().toggleSide()
-      'mylyn:add-file': => @createView().add(true)
-      'mylyn:add-folder': => @createView().add(false)
-      'mylyn:duplicate': => @createView().copySelectedEntry()
-      'mylyn:remove': => @createView().removeSelectedEntries()
-      'mylyn:rename': => @createView().moveSelectedEntry()
-      'mylyn:show-current-file-in-file-manager': => @createView().showCurrentFileInFileManager()
+      'tree-view:show': => @createView().show()
+      'tree-view:toggle': => @createView().toggle()
+      'tree-view:toggle-focus': => @createView().toggleFocus()
+      'tree-view:reveal-active-file': =>  @createView().revealActiveFile()
+      'tree-view:toggle-side': => @createView().toggleSide()
+      'tree-view:add-file': => @createView().add(true)
+      'tree-view:add-folder': => @createView().add(false)
+      'tree-view:duplicate': => @createView().copySelectedEntry()
+      'tree-view:remove': => @createView().removeSelectedEntries()
+      'tree-view:rename': => @createView().moveSelectedEntry()
+      'tree-view:show-current-file-in-file-manager': => @createView().showCurrentFileInFileManager()
 
     })
 
