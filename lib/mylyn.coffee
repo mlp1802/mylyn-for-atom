@@ -37,15 +37,8 @@ class Mylyn
       @mylyn.tasks.push(task)
       task
 
-
-
   reloadTreeView:()=>
-      console.log(@view)
       @view.createView().updateRoots()
-
-      @view.treeView.roots.forEach (r)=>
-          #console.log "RELOAD",r.directory
-          #r.directory.reload()
       @rebuild()
 
   showTaskList:()=>
@@ -55,7 +48,6 @@ class Mylyn
         @focusActivePane()
     console.log(tasklist)
 
-
   getFiles: ()=>
     if @mylyn.currentTask
       @mylyn.currentTask.files
@@ -63,7 +55,6 @@ class Mylyn
       []
 
   isDirAllowed:(dir)=>
-      #return false
       if @filterOn()
         dir = @toRelPath(dir)
         @getFiles().find((file)->(""+file).startsWith(dir))!=undefined
@@ -71,11 +62,8 @@ class Mylyn
         true
 
   isFileAllowed:(file)=>
-    #return false
     if @filterOn()
       relFile = @toRelPath(file)
-      #out("RelFile")(relFile)
-      #out("Files")(getFiles())
       relFile in @getFiles()
     else
       true
@@ -104,7 +92,6 @@ class Mylyn
         @focusActivePane()
     console.log(tasklist)
 
-
   newTask:() =>
     dialog = new InputDialog
           prompt:"New task"
@@ -116,12 +103,9 @@ class Mylyn
               @reloadTreeView()
               #@rebuild()
               @focusActivePane()
-
     dialog.attach()
 
-
   getState:()->@mylyn
-
 
   out:(o)=>
       console.log o
@@ -133,14 +117,7 @@ class Mylyn
     path = $(span).attr("data-path")
 
     if !isAllowed(path)
-        #$(e).addClass("mylyn-hidden")
         $(e).remove()
-        #$(e).detach()
-    #else
-        #$(e).attach()
-    #    $(e).removeClass("mylyn-hidden")
-
-
 
   hideDir:(e)=>
       @hide(e,@isDirAllowed)
@@ -164,16 +141,11 @@ class Mylyn
           #@out("entr")(entry.entries)
           #entry.entries.forEach @listenForEvents
   rebuild:()=>
-    #@out("View")(@view)
+
     @hideDirs()
     @hideFiles()
-    #emitter = @view.treeView.roots[0].directory.emitter
-    #onDidExpand
     @view.treeView.roots.forEach (root)=>@listenForEvents root.directory
-
     rootDir = @view.treeView.roots[0].directory
-
-    #@out("Emitter")(emitter)
 
   getDomFiles: =>
     files = $(".tree-view [is='tree-view-file']")
@@ -181,7 +153,6 @@ class Mylyn
 
   getDomDirs: =>
     dirs = $(".tree-view [is='tree-view-directory']")#.css("display","none")
-    #print(dirs)
     dirs
 
   onDidChangeActivePaneItem:(e)->
@@ -191,15 +162,10 @@ class Mylyn
           path =  @toRelPath(activeEditor.getBuffer().getPath())
           @addFile(path)
           @reloadTreeView()
-          #@rebuild()
-          @focusActivePane()
-
-
 
   toggleFilter:=>
     @mylyn.filterOn = !@mylyn.filterOn
     @reloadTreeView()
-
 
 module.exports =
     Mylyn:Mylyn
