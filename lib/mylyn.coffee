@@ -3,141 +3,203 @@
 FileIcons = require './file-icons'
 InputDialog = require '@aki77/atom-input-dialog'
 view = null
-toRelPath = (path)->atom.project.relativizePath(path)[1]
+class Mylyn
+  observer:null
+  constructor:(@view,@mylyn)->
+    if !@mylyn
+        @mylyn =
+              currentTask:null
+              tasks:[]
+              filterOn:false
+    @observer =  atom.workspace.onDidChangeActivePaneItem((e)=>
+        @onDidChangeActivePaneItem(e)
+        )
+    @reloadTreeView()
 
-deleteTask = (task) ->
-    mylyn.tasks = mylyn.tasks.filter (t)->t!=task
-    if mylyn.currentTask==task then mylyn.currentTask=null
-    view.updateRoots()
-    focusActivePane()
+  toRelPath:(path)->atom.project.relativizePath(path)[1]
+  deleteTask:(task)=>
+      @mylyn.tasks = @mylyn.tasks.filter (t)->t!=task
+      if @mylyn.currentTask==task then @mylyn.currentTask=null
+      @focusActivePane()
 
-filterOn =->mylyn.filterOn&mylyn.currentTask!=null
+  filterOn: =>
+    #return false
+    @mylyn.filterOn&@mylyn.currentTask!=null
 
-focusActivePane = ->
-    active =  atom.workspace.getActivePane()
-    if active then active.activate()
-createTask = (name)->
-    task =
-            name:name
-            files:[]
-    mylyn.tasks.push(task)
-    task
+  focusActivePane:=>
+      active =  atom.workspace.getActivePane()
+      if active then active.activate()
 
-
-
-showTaskList =(view)->
-  tasklist = new TaskList mylyn.currentTask, mylyn.tasks,(task)->
-      mylyn.currentTask = task
-      view.updateRoots()
-      #focusActivePane()
-  console.log(tasklist)
+  createTask:(name)=>
+      task =
+              name:name
+              files:[]
+      @mylyn.tasks.push(task)
+      task
 
 
-getFiles = ->
-  if mylyn.currentTask
-    mylyn.currentTask.files
-  else
-    []
-isDirAllowed = (dir)->
-    return true
-    if filterOn()
-      dir = toRelPath(dir)
-      getFiles().find((file)->file.startsWith(dir))!=undefined
+
+  reloadTreeView:()=>
+      console.log(@view)
+      @view.createView().updateRoots()
+
+      @view.treeView.roots.forEach (r)=>
+          #console.log "RELOAD",r.directory
+          #r.directory.reload()
+      @rebuild()
+
+  showTaskList:()=>
+    tasklist = new TaskList @mylyn.currentTask, @mylyn.tasks,(task)=>
+        @mylyn.currentTask = task
+        @reloadTreeView()
+        @focusActivePane()
+    console.log(tasklist)
+
+
+  getFiles: ()=>
+    if @mylyn.currentTask
+      @mylyn.currentTask.files
+    else
+      []
+
+  isDirAllowed:(dir)=>
+      #return false
+      if @filterOn()
+        dir = @toRelPath(dir)
+        @getFiles().find((file)->(""+file).startsWith(dir))!=undefined
+      else
+        true
+
+  isFileAllowed:(file)=>
+    #return false
+    if @filterOn()
+      relFile = @toRelPath(file)
+      #out("RelFile")(relFile)
+      #out("Files")(getFiles())
+      relFile in @getFiles()
     else
       true
 
-isFileAllowed = (file)->
-  return true
-  if filterOn()
-    toRelPath(file) in getFiles()
-  else
-    true
-addFile =(file)->
-      getFiles().push(file)
+  addFile:(file)=>
+        @getFiles().push(file)
 
 
-mylyn =
-      currentTask:null
-      tasks:[]
-      filterOn:false
+  renameTask:(task,newName)=>
+      @mylyn.currentTask.name = newName
+
+  renameCurrentTaskConfirm:()=>
+    if @mylyn.currentTask==null then return
+    dialog = new InputDialog
+          prompt:"Rename task "+mylyn.currentTask.name
+          defaultText:mylyn.currentTask.name
+          callback: (name) ->
+              @renameTask(mylyn.currentTask,name)
+              @focusActivePane()
+
+
+  deleteTaskConfirm:()=>
+    tasklist = new TaskList @mylyn.currentTask, @mylyn.tasks,(task)=>
+        @deleteTask(task)
+        @reloadTreeView()
+        @focusActivePane()
+    console.log(tasklist)
+
+
+  newTask:() =>
+    dialog = new InputDialog
+          prompt:"New task"
+          defaultText:""
+          callback: (text) =>
+              @mylyn.currentTask = @createTask(text)
+              #@view.createView().updateRoots()
+              #console.log @view
+              @reloadTreeView()
+              #@rebuild()
+              @focusActivePane()
+
+    dialog.attach()
+
+
+  getState:()->@mylyn
+
+
+  out:(o)=>
+      console.log o
+      @out
+
+
+  hide: (e,isAllowed)=>
+    span = $(e).find("span").first()
+    path = $(span).attr("data-path")
+
+    if !isAllowed(path)
+        #$(e).addClass("mylyn-hidden")
+        $(e).remove()
+        #$(e).detach()
+    #else
+        #$(e).attach()
+    #    $(e).removeClass("mylyn-hidden")
 
 
 
+  hideDir:(e)=>
+      @hide(e,@isDirAllowed)
 
-setMylyn =(m) ->
-    mylyn = m
+  hideFile:(e)=>
+      @hide(e,@isFileAllowed)
 
-renameTask = (task,newName)->
-    mylyn.currentTask.name = newName
+  hideDirs:=>
+      dirs = @getDomDirs()
+      dirs.each (i,e)=>@hideDir(e)
+  hideFiles:=>
+      files = @getDomFiles()
+      files.each (i,e)=>@hideFile(e)
 
-renameCurrentTaskConfirm = ()->
-  if mylyn.currentTask==null then return
-  dialog = new InputDialog
-        prompt:"Rename task "+mylyn.currentTask.name
-        defaultText:mylyn.currentTask.name
-        callback: (name) ->
-            renameTask(mylyn.currentTask,name)
-            focusActivePane()
-  dialog.attach()
+  listenForEvents:(entry)->
+      if entry.onDidExpand
+          entry.onDidExpand((d)=>@rebuild())
+      if entry.entries
+          #$.each entry.entries, (key, value)->console.log(key, value)
+          $.each entry.entries, (key, value)=>@listenForEvents value
+          #@out("entr")(entry.entries)
+          #entry.entries.forEach @listenForEvents
+  rebuild:()=>
+    #@out("View")(@view)
+    @hideDirs()
+    @hideFiles()
+    #emitter = @view.treeView.roots[0].directory.emitter
+    #onDidExpand
+    @view.treeView.roots.forEach (root)=>@listenForEvents root.directory
 
-deleteTaskConfirm = ()->
-  task =  mylyn.currentTask
-  if task==null then return
-  dialog = new InputDialog
-        prompt:"Delete task "+task.name+" ? (yes/no)"
-        defaultText:"No"
-        callback: (text) ->
-            if(text.toLowerCase()=="yes")
-              deleteTask(task)
-              focusActivePane()
-  dialog.attach()
-newTask =() ->
-  dialog = new InputDialog
-        prompt:"New task"
-        defaultText:""
-        callback: (text) ->
-            mylyn.currentTask = createTask(text)
-            view.updateRoots()
-            focusActivePane()
+    rootDir = @view.treeView.roots[0].directory
 
-  dialog.attach()
+    #@out("Emitter")(emitter)
 
+  getDomFiles: =>
+    files = $(".tree-view [is='tree-view-file']")
+    files
 
-getMylyn =()->mylyn
-onDidChangeActivePaneItem = (e)->
-      workspaceView = atom.views.getView(atom.workspace)
-      activeEditor = atom.workspace.getActiveTextEditor()
-      if activeEditor
-        path =  toRelPath(activeEditor.getBuffer().getPath())
-        addFile(path)
-        console.log("document")
-        lol = $("[data-path],[data-name],.icon-file-text")#.css("display","none")
-        lol.each (i,e)->console.log($(e).attr("data-path"))
-        #console.log(lol)
+  getDomDirs: =>
+    dirs = $(".tree-view [is='tree-view-directory']")#.css("display","none")
+    #print(dirs)
+    dirs
 
-        #atom.commands.dispatch(workspaceView, 'tree-view:reveal-active-file')
-        focusActivePane()
+  onDidChangeActivePaneItem:(e)->
+        workspaceView = atom.views.getView(atom.workspace)
+        activeEditor = atom.workspace.getActiveTextEditor()
+        if activeEditor
+          path =  @toRelPath(activeEditor.getBuffer().getPath())
+          @addFile(path)
+          @reloadTreeView()
+          #@rebuild()
+          @focusActivePane()
 
 
-allowedFiles = {
-    isDirAllowed:isDirAllowed
-    isFileAllowed:isFileAllowed
-  }
+
+  toggleFilter:=>
+    @mylyn.filterOn = !@mylyn.filterOn
+    @reloadTreeView()
 
 
-toggleFilter = ->
-  mylyn.filterOn = !mylyn.filterOn
-
-setView = (v)->
-  view = v
 module.exports =
-    onDidChangeActivePaneItem:onDidChangeActivePaneItem
-    allowedFiles:allowedFiles
-    toggleFilter:toggleFilter
-    showTaskList:showTaskList
-    setMylyn:setMylyn
-    getMylyn:getMylyn
-    newTask:newTask
-    setView:setView
-    renameCurrentTask:renameCurrentTaskConfirm
-    deleteTask:deleteTaskConfirm
+    Mylyn:Mylyn

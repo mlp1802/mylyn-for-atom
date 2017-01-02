@@ -1,62 +1,40 @@
-{Disposable, CompositeDisposable} = require 'event-kit'
-{deleteTask,PrenameCurrentTask,setView,newTask,onDidChangeActivePaneItem,allowedFiles,getMylyn,setMylyn,toggleFilter,showTaskList} = require "./mylyn"
+{Disposable,Emitter, CompositeDisposable} = require 'event-kit'
+{Mylyn} = require "./mylyn"
 path = require 'path'
-
+{requirePackages} = require 'atom-utils'
 module.exports =
   treeView: null
   observer: null
-
+  mylyn:null
 
   activateMylyn:(state) ->
-    mylyn = state.mylyn
-    if mylyn then setMylyn(mylyn)
-    console.log(mylyn)
 
-    @observer =  atom.workspace.onDidChangeActivePaneItem((e)=>
-        onDidChangeActivePaneItem(e)
-        #@createView().updateRoots()
-        #@createView().revealActiveFile()
-        )
+    if state
+      state = state.mylyn
+
+    requirePackages('tree-view').then ([treeView]) =>
+        @mylyn = new Mylyn(treeView,state)
+
 
   activate: (@state) ->
     @activateMylyn(@state)
 
     @disposables = new CompositeDisposable
-    @state.attached ?= true if @shouldAttach()
-    @createView() if @state.attached
-    setView(@createView())
+
+
+
     @disposables.add atom.commands.add('atom-workspace', {
       'list:toogle-filter': =>
-        toggleFilter()
-        @createView().updateRoots()
+        @mylyn.toggleFilter()
 
-      'list:tasklist': =>
-          showTaskList(@createView())
-      'list:new-task': =>newTask()
-      'list:delete-current-task': =>deleteTask()
-
-      'list:update-view': => @createView().updateRoots()
-      'list:rename-current-task': => renameCurrentTask()
-      'tree-view:show': => @createView().show()
-      'tree-view:toggle': => @createView().toggle()
-      'tree-view:toggle-focus': => @createView().toggleFocus()
-      'tree-view:reveal-active-file': =>  @createView().revealActiveFile()
-      'tree-view:toggle-side': => @createView().toggleSide()
-      'tree-view:add-file': => @createView().add(true)
-      'tree-view:add-folder': => @createView().add(false)
-      'tree-view:duplicate': => @createView().copySelectedEntry()
-      'tree-view:remove': => @createView().removeSelectedEntries()
-      'tree-view:rename': => @createView().moveSelectedEntry()
-      'tree-view:show-current-file-in-file-manager': => @createView().showCurrentFileInFileManager()
-
+      'list:tasklist': =>@mylyn.showTaskList()
+      'list:new-task': =>@mylyn.newTask()
+      'list:delete-task': =>@mylyn.deleteTaskConfirm()
+      'list:rename-current-task': =>@mylyn.renameCurrentTask()
     })
 
   deactivate: ->
     @disposables.dispose()
-    @fileIconsDisposable?.dispose()
-    @treeView?.deactivate()
-    @treeView = null
-
   consumeFileIcons: (service) ->
     FileIcons.setService(service)
     @treeView?.updateRoots()
@@ -65,32 +43,6 @@ module.exports =
       @treeView?.updateRoots()
 
   serialize: ->
-      if @treeView?
-          r = @treeView.serialize()
-          r.mylyn = getMylyn()
-          r
-       else
-          @state.mylyn = getMylyn()
-          @state
-
-  createView: ->
-    unless @treeView?
-      TreeView = require './tree-view'
-
-          #(path)-> path.includes("main")
-
-          #["main.coffee","helpers.coffee"]
-      @treeView = new TreeView(@state,allowedFiles)
-    @treeView
-
-  shouldAttach: ->
-    projectPath = atom.project.getPaths()[0] ? ''
-    if atom.workspace.getActivePaneItem()
-      false
-    else if path.basename(projectPath) is '.git'
-      # Only attach when the project path matches the path to open signifying
-      # the .git folder was opened explicitly and not by using Atom as the Git
-      # editor.
-      projectPath is atom.getLoadSettings().pathToOpen
-    else
-      true
+    {
+        mylyn:@mylyn.getState()
+    }
