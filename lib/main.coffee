@@ -8,39 +8,25 @@ module.exports =
   mylyn:null
 
   activateMylyn:(state) ->
-
     if state
       state = state.mylyn
-
     requirePackages('tree-view').then ([treeView]) =>
         @mylyn = new Mylyn(treeView,state)
-
-
   activate: (@state) ->
     @activateMylyn(@state)
-
     @disposables = new CompositeDisposable
-
-
-
     @disposables.add atom.commands.add('atom-workspace', {
-      'list:toogle-filter': =>
+      'mylyn:toogle-filter': =>
         @mylyn.toggleFilter()
 
-      'list:tasklist': =>@mylyn.showTaskList()
-      'list:new-task': =>@mylyn.newTask()
-      'list:delete-task': =>@mylyn.deleteTaskConfirm()
-      'list:rename-current-task': =>@mylyn.renameCurrentTask()
+      'mylyn:tasklist': =>@mylyn.showTaskList()
+      'mylyn:new-task': =>@mylyn.newTask()
+      'mylyn:delete-task': =>@mylyn.deleteTaskConfirm()
+      'mylyn:rename-current-task': =>@mylyn.renameCurrentTask()
     })
 
   deactivate: ->
     @disposables.dispose()
-  consumeFileIcons: (service) ->
-    FileIcons.setService(service)
-    @treeView?.updateRoots()
-    new Disposable =>
-      FileIcons.resetService()
-      @treeView?.updateRoots()
 
   serialize: ->
     {
