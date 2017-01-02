@@ -1,5 +1,5 @@
 {Disposable, CompositeDisposable} = require 'event-kit'
-{renameCurrentTask,setView,newTask,onDidChangeActivePaneItem,allowedFiles,getMylyn,setMylyn,toggleFilter,showTaskList} = require "./mylyn"
+{deleteTask,PrenameCurrentTask,setView,newTask,onDidChangeActivePaneItem,allowedFiles,getMylyn,setMylyn,toggleFilter,showTaskList} = require "./mylyn"
 path = require 'path'
 
 module.exports =
@@ -14,8 +14,8 @@ module.exports =
 
     @observer =  atom.workspace.onDidChangeActivePaneItem((e)=>
         onDidChangeActivePaneItem(e)
-        @createView().updateRoots()
-        @createView().revealActiveFile()
+        #@createView().updateRoots()
+        #@createView().revealActiveFile()
         )
 
   activate: (@state) ->
@@ -33,7 +33,7 @@ module.exports =
       'list:tasklist': =>
           showTaskList(@createView())
       'list:new-task': =>newTask()
-
+      'list:delete-current-task': =>deleteTask()
 
       'list:update-view': => @createView().updateRoots()
       'list:rename-current-task': => renameCurrentTask()

@@ -7,15 +7,25 @@ class TaskList extends SelectListView
     command:null
     initialize: () ->
       super()
+      @storeFocusedElement()
       @modal = atom.workspace.addModalPanel(item:@element)
       @on 'blur', => @close()
       @command = atom.commands.add @element , 'core:cancel':=>@close()
       @setItems(@tasks)
       @focusFilterEditor()
+
+    focusActivePane: () ->
+        active =  atom.workspace.getActivePane()
+        if active then active.activate()
+
     close: ->
       @command.dispose()
       @modal.destroy()
-    getFilterKey:->"name"  
+      @focusActivePane()
+
+
+
+    getFilterKey:->"name"
     viewForItem:(item)->
 
         if item==@currentTask
@@ -25,6 +35,7 @@ class TaskList extends SelectListView
     confirmed:(item)->
         @close()
         @taskSelected(item)
+        @focusActivePane()
 
 
 module.exports =
