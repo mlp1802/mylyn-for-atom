@@ -18,11 +18,13 @@ module.exports =
     @activateMylyn(@state)
     @disposables = new CompositeDisposable
     @disposables.add atom.commands.add('atom-workspace', {
-      'mylyn:toogle-filter': =>@mylyn.toggleFilter()
+      'mylyn:toggle-filter': =>@mylyn.toggleFilter()
       'mylyn:tasklist': =>@mylyn.switchTask()
       'mylyn:new-task': =>@mylyn.newTask()
+      'mylyn:delete-all-tasks': =>@mylyn.deleteAllTasks()
       'mylyn:delete-task': =>@mylyn.deleteTaskConfirm()
       'mylyn:rename-current-task': =>@mylyn.renameCurrentTaskConfirm()
+      'mylyn:toggle-enabled': =>@mylyn.toggleEnabled()
     })
 
   deactivate: ->

@@ -1,21 +1,40 @@
 {TaskList} = require("./TaskList")
 {$} = require('atom-space-pen-views')
+{MessagePanelView, PlainMessageView, LineMessageView} = require 'atom-message-panel'
+
 InputDialog = require '@aki77/atom-input-dialog'
 view = null
 class Mylyn
   observer:null
+
   constructor:(@view,@mylyn)->
     if !@mylyn
         @mylyn =
               currentTask:null
               tasks:[]
               filterOn:false
+              enabled:false
     @observer =  atom.workspace.onDidChangeActivePaneItem((e)=>
         @onDidChangeActivePaneItem(e)
         )
     @reloadTreeView()
 
-  toRelPath:(path)->atom.project.relativizePath(path)[1]
+  toRelPath:(path)->
+    relPaths = atom.project.relativizePath(path)
+    proFolder =
+      if relPaths[0]
+        relPaths[0].split("/")
+      else
+        ""
+    proFolder = proFolder[proFolder.length-1]
+    proPath = proFolder+"/"+relPaths[1]
+    proPath
+
+  toggleEnabled:()->
+    @mylyn.enabled = !@mylyn.enabled
+    if @mylyn.enabled
+      @mylyn.filterOn = true
+    @reloadTreeView()
 
   deleteTask:(task)=>
       @mylyn.tasks = @mylyn.tasks.filter (t)->t!=task
@@ -24,7 +43,7 @@ class Mylyn
 
   filterOn: =>
     #return false
-    @mylyn.filterOn&@mylyn.currentTask!=null
+    @mylyn.filterOn&@mylyn.currentTask!=null&@mylyn.enabled
 
   focusActivePane:=>
       active =  atom.workspace.getActivePane()
@@ -51,10 +70,15 @@ class Mylyn
         callback(task)
         @focusActivePane()
 
+  enableAll: ->
+      @mylyn.enabled = true
+      @mylyn.filterOn = true
   switchTask:()=>
     @selectTask (task)=>
+      @enableAll()
       @mylyn.currentTask = task
       @reloadTreeView()
+
 
 
 
@@ -92,18 +116,22 @@ class Mylyn
   getFile:(file)=>
     @getFiles().find (f)=>f.path is file
 
+
   addFile:(path)=>
         startPoints = 205
+        @getFiles().forEach (f)->
+            f.points = f.points-5
         if !@hasFile path
             file =
                 path:path
                 points:startPoints
             @getFiles().push(file)
+            return false
           else
             file = @getFile(path)
             file.points=startPoints
-        @getFiles().forEach (f)->
-            f.points = f.points-5
+            return true
+
 
 
 
@@ -127,18 +155,28 @@ class Mylyn
         @reloadTreeView()
 
 
-  newTask:() =>
+
+
+  showDialog:(prompt,defaultText,callback)=>
     dialog = new InputDialog
-          prompt:"New task"
-          defaultText:""
-          callback: (text) =>
-              @mylyn.currentTask = @createTask(text)
-              #@view.createView().updateRoots()
-              #console.log @view
-              @reloadTreeView()
-              #@rebuild()
-              @focusActivePane()
+          prompt:prompt
+          defaultText:defaultText
+          callback: callback
     dialog.attach()
+
+  deleteAllTasks:->
+    @showDialog "Delete all tasks (Yes/No)","No",(answer)=>
+          if(answer=="Yes")
+            @mylyn.tasks = []
+            @mylyn.currentTask = null
+          @reloadTreeView()
+  newTask:() =>
+    @showDialog "New task","",(name)=>
+          @mylyn.currentTask = @createTask(name)
+          @enableAll()
+          @reloadTreeView()
+          @focusActivePane()
+
 
   getState:()->@mylyn
 
@@ -193,42 +231,32 @@ class Mylyn
     @view.treeView.roots.forEach (root)=>@listenForEvents root.directory
     rootDir = @view.treeView.roots[0].directory
 
-  getDomFiles: =>
-    files = $(".tree-view [is='tree-view-file']")
-    files
+  getDomFiles: =>$(".tree-view [is='tree-view-file']")
 
-  getDomDirs: =>
-    dirs = $(".tree-view [is='tree-view-directory']")#.css("display","none")
-    dirs
+
+  getDomDirs: => $(".tree-view [is='tree-view-directory']")#.css("display","none")
+
 
   removeFile:(file)=>
 
-  updateFiles:()=>
-
-    console.log(@getFiles())
-    files = @getFiles().filter (f)->f.points>0
-    @withCurrentTask (task)->task.files = files
+  updateFiles:()=> @mylyn.currentTask.files =  @getFiles().filter (f)->f.points>0
 
 
-
-    #console.log @getFiles()
-
-
-  onDidChangeActivePaneItem:(e)->
+  onDidChangeActivePaneItem:(e)=>
         workspaceView = atom.views.getView(atom.workspace)
         activeEditor = atom.workspace.getActiveTextEditor()
-
-        if activeEditor
+        activePane = atom.workspace.getActivePane();
+        if activeEditor and @mylyn.enabled and @mylyn.currentTask
           path =  @toRelPath(activeEditor.getBuffer().getPath())
           @addFile(path)
           @updateFiles()
-
-
           @reloadTreeView()
+
 
   toggleFilter:=>
     @mylyn.filterOn = !@mylyn.filterOn
     @reloadTreeView()
+
 
 module.exports =
     Mylyn:Mylyn
