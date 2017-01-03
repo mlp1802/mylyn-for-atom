@@ -5,14 +5,14 @@ Task focused development in Atom, based on Mylyn for Eclipse. Mylyn filters the 
 ## Usage
 Enable Mylyn through command pallete  (mylyn:toggle-enabled)
 
-Add a task  (mylyn:new-task)
+Add a task, or tasks  (mylyn:new-task)
 
 Start working..select files either through command pallete or by switching off filtering  (mylyn:toggle-filter), then add files using the file tree view.
 
 
 When you have the files you need, toogle filter again.
 
-Task will be automatically saved when you exit Atom.
+Tasks will be automatically saved when you exit Atom.
 
 
 
