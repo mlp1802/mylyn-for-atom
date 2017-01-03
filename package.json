@@ -1,5 +1,5 @@
 {
-  "name": "tree-view-mylyn",
+  "name": "mylyn-for-atom",
   "version": "0.211.1",
   "main": "./lib/main",
   "description": "Explore and open files in the current project.",
@@ -14,11 +14,7 @@
     "atom-space-pen-views": "^2.1.1",
     "atom-utils": "^0.9.2",
     "event-kit": "^1.0.0",
-    "fs-plus": "^2.3.0",
-    "minimatch": "~0.3.0",
-    "pathwatcher": "^6.2",
-    "temp": "~0.8.1",
-    "underscore-plus": "^1.0.0"
+    "temp": "~0.8.1"
   },
   "devDependencies": {
     "coffeelint": "^1.9.7"
