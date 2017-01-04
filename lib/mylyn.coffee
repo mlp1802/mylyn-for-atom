@@ -255,8 +255,8 @@ class Mylyn
 
   toggleFilter:=>
     @mylyn.filterOn = !@mylyn.filterOn
-    if @mylin.filterOn
-      @mylin.enabled = true
+    if @mylyn.filterOn
+      @mylyn.enabled = true
     @reloadTreeView()
 
 
