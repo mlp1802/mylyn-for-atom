@@ -1,13 +1,13 @@
 {Disposable,Emitter, CompositeDisposable} = require 'event-kit'
 {Mylyn} = require "./mylyn"
 {requirePackages} = require 'atom-utils'
+{loadState} = require("./common")
 mylyn = null
 
 module.exports =
   mylyn:()=>mylyn
-  activateMylyn:(state) ->
-    if state
-      state = state.mylyn
+  activateMylyn:(s) ->
+    state = loadState()
     requirePackages('tree-view').then ([treeView]) =>
         mylyn = new Mylyn(treeView,state)
   withMylyn:(f)=>
@@ -34,7 +34,4 @@ module.exports =
   deactivate: ->
     @disposables.dispose()
 
-  serialize: ->
-    {
-        mylyn:mylyn.getState()
-    }
+  serialize: ->{}

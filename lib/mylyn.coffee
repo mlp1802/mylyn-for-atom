@@ -1,5 +1,7 @@
 {TaskList} = require("./TaskList")
 {$} = require('atom-space-pen-views')
+{saveState} = require("./common")
+
 {MessagePanelView, PlainMessageView, LineMessageView} = require 'atom-message-panel'
 
 InputDialog = require '@aki77/atom-input-dialog'
@@ -19,6 +21,7 @@ class Mylyn
         )
     @reloadTreeView()
 
+
   toRelPath:(path)->
     relPaths = atom.project.relativizePath(path)
     proFolder =
@@ -30,6 +33,13 @@ class Mylyn
     proPath = proFolder+"/"+relPaths[1]
     proPath
 
+
+
+
+  save:()->
+        saveState(@mylyn)
+
+
   toggleEnabled:()->
     @mylyn.enabled = !@mylyn.enabled
     if @mylyn.enabled
@@ -40,6 +50,7 @@ class Mylyn
       @mylyn.tasks = @mylyn.tasks.filter (t)->t!=task
       if @mylyn.currentTask==task then @mylyn.currentTask=null
       @focusActivePane()
+      @save()
 
   filterOn: =>
     #return false
@@ -54,6 +65,7 @@ class Mylyn
               name:name
               files:[]
       @mylyn.tasks.push(task)
+      @save()
       task
 
   reloadTreeView:()=>
@@ -77,6 +89,7 @@ class Mylyn
     @selectTask (task)=>
       @enableAll()
       @mylyn.currentTask = task
+      @save()
       @reloadTreeView()
 
 
@@ -145,6 +158,7 @@ class Mylyn
           defaultText:@mylyn.currentTask.name
           callback: (name) =>
               @renameTask(@mylyn.currentTask,name)
+              @save()
               @focusActivePane()
     dialog.attach()
 
@@ -250,6 +264,7 @@ class Mylyn
           path =  @toRelPath(activeEditor.getBuffer().getPath())
           @addFile(path)
           @updateFiles()
+          @save()
           @reloadTreeView()
 
 
