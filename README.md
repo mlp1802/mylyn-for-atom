@@ -12,7 +12,7 @@ Start working..select files either through command pallete or by switching off f
 
 When you have the files you need, toogle filter again.
 
-Tasks will be automatically saved when you exit Atom.
+Tasks will be automatically saved when you exit Atom (to ~/.config/mylyn.json)
 
 
 
