@@ -21,7 +21,6 @@ class Mylyn
         )
     @reloadTreeView()
 
-
   toRelPath:(path)->
     relPaths = atom.project.relativizePath(path)
     proFolder =
@@ -33,12 +32,8 @@ class Mylyn
     proPath = proFolder+"/"+relPaths[1]
     proPath
 
-
-
-
   save:()->
         saveState(@mylyn)
-
 
   toggleEnabled:()->
     @mylyn.enabled = !@mylyn.enabled
@@ -78,7 +73,10 @@ class Mylyn
 
 
   selectTask:(callback)=>
-    new TaskList @mylyn.currentTask, @mylyn.tasks,(task)=>
+    currentTask= @mylyn.currentTask
+    #tasks = @mylyn.tasks.sort (t)->t.name+(t!=currentTask)
+    tasks = @mylyn.tasks#.sort (t)->t.name+(t!=(@mylyn.currentTask))
+    new TaskList @mylyn.currentTask,@mylyn.tasks,(task)=>
         callback(task)
         @focusActivePane()
 
@@ -131,7 +129,7 @@ class Mylyn
 
 
   addFile:(path)=>
-        startPoints = 205
+        startPoints = 250
         @getFiles().forEach (f)->
             f.points = f.points-5
         if !@hasFile path

@@ -1,5 +1,13 @@
 {SelectListView, View} = require 'atom-space-pen-views'
 #{,View} = require 'atom'
+_ = require("underscore")
+getSortName = (item,currentTask)=>
+
+  if item.name==currentTask.name
+      "A:"+item.name
+  else
+      "Z:"+item.name
+
 class TaskList extends SelectListView
     constructor:(@currentTask,@tasks,@taskSelected)->
         super()
@@ -11,7 +19,8 @@ class TaskList extends SelectListView
       @modal = atom.workspace.addModalPanel(item:@element)
       @on 'blur', => @close()
       @command = atom.commands.add @element , 'core:cancel':=>@close()
-      @setItems(@tasks)
+      sorted = _.sortBy @tasks,(t)=>getSortName(t,@currentTask)
+      @setItems sorted
       @focusFilterEditor()
 
     focusActivePane: () ->
@@ -27,11 +36,11 @@ class TaskList extends SelectListView
 
     getFilterKey:->"name"
     viewForItem:(item)->
-
-        if item==@currentTask
-          "<li class='status-modified'>#{item.name}</li>"
+        name  = item.name
+        if item.name==@currentTask.name
+          "<li class='status-modified'>#{name}</li>"
         else
-          "<li>#{item.name}</li>"
+          "<li>#{name}</li>"
     confirmed:(item)->
         @close()
         @taskSelected(item)
