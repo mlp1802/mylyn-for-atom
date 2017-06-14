@@ -129,7 +129,7 @@ class Mylyn
 
 
   addFile:(path)=>
-        startPoints = 250
+        startPoints = 400
         @getFiles().forEach (f)->
             f.points = f.points-5
         if !@hasFile path

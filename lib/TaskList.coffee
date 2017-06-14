@@ -2,7 +2,7 @@
 #{,View} = require 'atom'
 _ = require("underscore")
 getSortName = (item,currentTask)=>
-
+  if not  currentTask then return item.name
   if item.name==currentTask.name
       "A:"+item.name
   else
@@ -37,7 +37,7 @@ class TaskList extends SelectListView
     getFilterKey:->"name"
     viewForItem:(item)->
         name  = item.name
-        if item.name==@currentTask.name
+        if @currentTask!=null && item.name==@currentTask.name
           "<li class='status-modified'>#{name}</li>"
         else
           "<li>#{name}</li>"
