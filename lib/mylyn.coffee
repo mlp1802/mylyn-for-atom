@@ -64,12 +64,20 @@ class Mylyn
       task
 
   reloadTreeView:()=>
-      view = @view.createView()
-      selectedPath = view.selectedEntry()?.getPath()
-      view.updateRoots()
-      if selectedPath
-        view.selectEntryForPath selectedPath
-      @rebuild()
+      console.log @view
+
+      
+      @view.treeViewOpenPromise
+                .then (view)=>
+                      selectedPath = view.selectedEntry()?.getPath()
+                      view.updateRoots()
+                      if selectedPath
+                        view.selectEntryForPath selectedPath
+                      @rebuild()
+
+
+      
+      
 
 
   selectTask:(callback)=>
