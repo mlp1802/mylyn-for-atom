@@ -51,7 +51,6 @@ Delete a specific task
 mylyn:rename-current-task
 ```
 Renames current task
-k
 ```
 mylyn:select-file
 ```
