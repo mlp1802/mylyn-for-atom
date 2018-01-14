@@ -26,6 +26,7 @@ module.exports =
       'mylyn:tasklist': =>@withMylyn((mylyn)=>mylyn.switchTask())
       'mylyn:new-task': =>@withMylyn((mylyn)=>mylyn.newTask())
       'mylyn:delete-all-tasks':=>@withMylyn((mylyn)=>mylyn.deleteAllTasks())
+      'mylyn:select-file': =>@withMylyn((mylyn)=>mylyn.switchFile())
       'mylyn:delete-task': =>@withMylyn((mylyn)=>mylyn.deleteTaskConfirm())
       'mylyn:rename-current-task': =>@withMylyn((mylyn)=>mylyn.renameCurrentTaskConfirm())
       'mylyn:toggle-enabled': =>@withMylyn((mylyn)=>mylyn.toggleEnabled())

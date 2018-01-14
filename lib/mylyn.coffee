@@ -1,9 +1,9 @@
-{TaskList} = require("./TaskList")
+{TaskList,FileList} = require("./TaskList")
 {$} = require('atom-space-pen-views')
 {saveState} = require("./common")
 
 {MessagePanelView, PlainMessageView, LineMessageView} = require 'atom-message-panel'
-
+_ = require "lodash"
 InputDialog = require '@aki77/atom-input-dialog'
 view = null
 class Mylyn
@@ -12,6 +12,7 @@ class Mylyn
   constructor:(@view,@mylyn)->
     if !@mylyn
         @mylyn =
+              lastSelectedFile:undefined
               currentTask:null
               tasks:[]
               filterOn:false
@@ -65,8 +66,6 @@ class Mylyn
 
   reloadTreeView:()=>
       console.log @view
-
-      
       @view.treeViewOpenPromise
                 .then (view)=>
                       selectedPath = view.selectedEntry()?.getPath()
@@ -75,14 +74,14 @@ class Mylyn
                         view.selectEntryForPath selectedPath
                       @rebuild()
 
-
-      
-      
-
+  selectFile:(callback)=>
+    if @mylyn.currentTask
+      new FileList @mylyn.lastSelectedFile,@mylyn.currentTask.files,(file)=>
+          callback(file)
+          @focusActivePane()
 
   selectTask:(callback)=>
     currentTask= @mylyn.currentTask
-    #tasks = @mylyn.tasks.sort (t)->t.name+(t!=currentTask)
     tasks = @mylyn.tasks#.sort (t)->t.name+(t!=(@mylyn.currentTask))
     new TaskList @mylyn.currentTask,@mylyn.tasks,(task)=>
         callback(task)
@@ -91,6 +90,7 @@ class Mylyn
   enableAll: ->
       @mylyn.enabled = true
       @mylyn.filterOn = true
+
   switchTask:()=>
     @selectTask (task)=>
       @enableAll()
@@ -98,12 +98,29 @@ class Mylyn
       @save()
       @reloadTreeView()
 
-
-
+  switchFile:()=>
+      @selectFile (file)=>
+            uri = "//"+file.path
+            getRealFilePath = (path)->
+                      projectRoot = _.first path.split("/")
+                      projectPaths = atom.project.getPaths()
+                      root = _.find projectPaths,(p)->
+                                    pp = _.last p.split("/")
+                                    pp==projectRoot
+                      if root
+                        rootArray = root.split("/")
+                        restOfProject = (_.tail path.split("/"))
+                        allPathArray = _.tail(_.concat rootArray,restOfProject)
+                        finalPath = _.reduce allPathArray, ((acc,p)->acc+"/"+p),""
+                        finalPath
+            realPath = getRealFilePath file.path
+            @mylyn.currentTask.lastSelectedFile = file
+            atom.workspace.open realPath,{searchAllPanes:true}
 
 
   getFilePaths:()=>
     @getFiles().map (f)->f.path
+
   isDirAllowed:(dir)=>
       if @filterOn()
         dir = @toRelPath(dir)
@@ -156,6 +173,9 @@ class Mylyn
 
   renameTask:(task,newName)=>
       @mylyn.currentTask.name = newName
+      @save()
+
+  showActiveFiles:()->
 
   renameCurrentTaskConfirm:()=>
     if @mylyn.currentTask==null then return

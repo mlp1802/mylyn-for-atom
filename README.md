@@ -26,7 +26,6 @@ mylyn:toggle-enabled
 ```
 Toggles Mylyn on/off.
 ```
-
 mylyn:toggle-filter
 ```
 Enable filtered view. If filtering is off, Mylyn will still garther file usage information, but will not filter the tree view. When enabled, Mylyn is also turned on (but not off, when off is selected).
@@ -52,3 +51,8 @@ Delete a specific task
 mylyn:rename-current-task
 ```
 Renames current task
+k
+```
+mylyn:select-file
+```
+Select active file from a list

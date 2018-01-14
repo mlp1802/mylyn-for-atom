@@ -1,6 +1,6 @@
 {
   "name": "mylyn-for-atom",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "./lib/main",
   "description": "Task focused development in Atom, based on Mylyn for Eclipse",
   "repository": "https://github.com/mlp1802/mylyn-for-atom",
@@ -15,6 +15,7 @@
     "atom-space-pen-views": "^2.1.1",
     "atom-utils": "^0.9.2",
     "event-kit": "^1.0.0",
+    "lodash": "^4.17.4",
     "temp": "~0.8.1"
   }
 }
