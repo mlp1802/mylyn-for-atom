@@ -49,6 +49,7 @@ class TaskList extends SelectListView
 
 class FileList extends SelectListView
     constructor:(@lastSelectedFile,@files,@fileSelected)->
+        console.log("LOL LAST SELECTE",@lastSelectedFile)
         super()
     modal:null
     command:null
@@ -59,9 +60,10 @@ class FileList extends SelectListView
       @on 'blur', => @close()
       @command = atom.commands.add @element , 'core:cancel':=>@close()
       sorted  = _.sortBy @files,"points"
+      f_ = (x)=>x.path!=@lastSelectedFile.path
       if @lastSelectedFile
-        sorted = (_.filter (x)->x.path!=@lastSelectedFile.path).reverse()
-        sorted = _.concat lastSelectedFile,sorted
+        sorted = (_.filter sorted,f_).reverse()
+        sorted = _.concat @lastSelectedFile,sorted
       @setItems sorted
       @focusFilterEditor()
 

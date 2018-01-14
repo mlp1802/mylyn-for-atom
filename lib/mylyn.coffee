@@ -13,6 +13,7 @@ class Mylyn
     if !@mylyn
         @mylyn =
               lastSelectedFile:undefined
+              selectedFile:undefined
               currentTask:null
               tasks:[]
               filterOn:false
@@ -76,7 +77,7 @@ class Mylyn
 
   selectFile:(callback)=>
     if @mylyn.currentTask
-      new FileList @mylyn.lastSelectedFile,@mylyn.currentTask.files,(file)=>
+      new FileList @mylyn.currentTask.lastSelectedFile,@mylyn.currentTask.files,(file)=>
           callback(file)
           @focusActivePane()
 
@@ -114,7 +115,9 @@ class Mylyn
                         finalPath = _.reduce allPathArray, ((acc,p)->acc+"/"+p),""
                         finalPath
             realPath = getRealFilePath file.path
-            @mylyn.currentTask.lastSelectedFile = file
+            @mylyn.currentTask.lastSelectedFile = @mylyn.currentTask.selectedFile
+            @mylyn.currentTask.selectedFile = file
+            @save()
             atom.workspace.open realPath,{searchAllPanes:true}
 
 
