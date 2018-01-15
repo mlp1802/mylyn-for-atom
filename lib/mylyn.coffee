@@ -59,6 +59,8 @@ class Mylyn
 
   createTask:(name)=>
       task =
+              lastSelectedFile:undefined
+              selectedFile:undefined
               name:name
               files:[]
       @mylyn.tasks.push(task)
@@ -66,7 +68,6 @@ class Mylyn
       task
 
   reloadTreeView:()=>
-      console.log @view
       @view.treeViewOpenPromise
                 .then (view)=>
                       selectedPath = view.selectedEntry()?.getPath()
@@ -77,7 +78,11 @@ class Mylyn
 
   selectFile:(callback)=>
     if @mylyn.currentTask
-      new FileList @mylyn.currentTask.lastSelectedFile,@mylyn.currentTask.files,(file)=>
+      args =
+        lastSelectedFile:@lastSelectedFile()
+        currentFilePath:@currentFilePath()
+        files:@mylyn.currentTask.files
+      new FileList args,(file)=>
           callback(file)
           @focusActivePane()
 
@@ -99,10 +104,17 @@ class Mylyn
       @save()
       @reloadTreeView()
 
+  currentTask:()=>@mylyn.currentTask
+  currentFile:()=>@currentTask().selectedFile
+  lastSelectedFile:()=>@currentTask().lastSelectedFile
+  currentFilePath:()=>_.get(@currentFile(),"path")
+  lastSelectedFilePath:()=>_.get(@lastSelectedFile(),"path")
+  isCurrentFile:(file)=>file.path==@currentFilePath()
+
   switchFile:()=>
-      @selectFile (file)=>
-            uri = "//"+file.path
-            getRealFilePath = (path)->
+    @selectFile (file)=>
+          if !@isCurrentFile file
+            getRealFilePath = (path)=>
                       projectRoot = _.first path.split("/")
                       projectPaths = atom.project.getPaths()
                       root = _.find projectPaths,(p)->
@@ -114,13 +126,16 @@ class Mylyn
                         allPathArray = _.tail(_.concat rootArray,restOfProject)
                         finalPath = _.reduce allPathArray, ((acc,p)->acc+"/"+p),""
                         finalPath
+            @updateSelectedFile @mylyn.currentTask,file
             realPath = getRealFilePath file.path
-            @mylyn.currentTask.lastSelectedFile = @mylyn.currentTask.selectedFile
-            @mylyn.currentTask.selectedFile = file
-            @save()
             atom.workspace.open realPath,{searchAllPanes:true}
 
 
+  updateSelectedFile:(currentTask,file)=>
+          if !@isCurrentFile(file)
+            currentTask.lastSelectedFile = currentTask.selectedFile
+            currentTask.selectedFile = file
+            @save()
   getFilePaths:()=>
     @getFiles().map (f)->f.path
 
@@ -165,10 +180,12 @@ class Mylyn
                 path:path
                 points:startPoints
             @getFiles().push(file)
+            @updateSelectedFile @mylyn.currentTask, file
             return false
           else
             file = @getFile(path)
             file.points=startPoints
+            @updateSelectedFile @mylyn.currentTask, file
             return true
 
 

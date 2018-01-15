@@ -48,8 +48,7 @@ class TaskList extends SelectListView
 
 
 class FileList extends SelectListView
-    constructor:(@lastSelectedFile,@files,@fileSelected)->
-        console.log("LOL LAST SELECTE",@lastSelectedFile)
+    constructor:(@args,@fileSelected)->
         super()
     modal:null
     command:null
@@ -59,11 +58,13 @@ class FileList extends SelectListView
       @modal = atom.workspace.addModalPanel(item:@element)
       @on 'blur', => @close()
       @command = atom.commands.add @element , 'core:cancel':=>@close()
-      sorted  = _.sortBy @files,"points"
-      f_ = (x)=>x.path!=@lastSelectedFile.path
-      if @lastSelectedFile
+      sorted  = _.sortBy @args.files,"points"
+      lastSelected = @args.lastSelectedFile
+      f_ = (x)=>
+        x.path!=lastSelected.path
+      if lastSelected
         sorted = (_.filter sorted,f_).reverse()
-        sorted = _.concat @lastSelectedFile,sorted
+        sorted = _.concat lastSelected,sorted
       @setItems sorted
       @focusFilterEditor()
 
@@ -76,12 +77,10 @@ class FileList extends SelectListView
       @modal.destroy()
       @focusActivePane()
 
-
-
     getFilterKey:->"path"
     viewForItem:(item)->
         name  = _.last(item.path.split("/"))
-        if @currentFile!=null && name==@currentFile
+        if @args.currentFilePath==item.path
           "<li class='status-modified'>#{name}</li>"
         else
           "<li>#{name}</li>"

@@ -9,6 +9,7 @@ loadState = ->
   try
     return JSON.parse(fs.readFileSync(getFileName(), 'utf8'));
   catch error
+     console.log error
 
 
 saveState = (state)->
