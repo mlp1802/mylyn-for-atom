@@ -11,9 +11,11 @@ loadState = ->
   catch error
      console.log error
 
-
+writing = false
 saveState = (state)->
-      fs.writeFile(getFileName(), JSON.stringify(state) , 'utf-8',(e)->e);
+      if !writing
+        writing = true
+        fs.writeFile(getFileName(), JSON.stringify(state) , 'utf-8',(e)->writing = false);
 
 module.exports =
     {saveState,loadState}

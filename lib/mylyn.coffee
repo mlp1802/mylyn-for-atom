@@ -8,7 +8,6 @@ InputDialog = require '@aki77/atom-input-dialog'
 view = null
 class Mylyn
   observer:null
-
   constructor:(@view,@mylyn)->
     if !@mylyn
         @mylyn =
