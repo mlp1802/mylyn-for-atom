@@ -7,7 +7,7 @@ Enable Mylyn through command pallete  (mylyn:toggle-enabled)
 
 Add a task, or tasks  (mylyn:new-task)
 
-Start working..select files either through command pallete or by switching off filtering  (mylyn:toggle-filter), then add files using the file tree view.
+Start working..select files either through ctrl-p or by switching off filtering  (mylyn:toggle-filter), then add files using the file tree view.
 
 
 When you have the files you need, toogle filter again.
