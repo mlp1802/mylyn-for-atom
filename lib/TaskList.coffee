@@ -81,9 +81,9 @@ class FileList extends SelectListView
     viewForItem:(item)->
         name  = _.last(item.path.split("/"))
         if @args.currentFilePath==item.path
-          "<li class='status-modified'>#{name}</li>"
+          "<li class='status-modified'>#{item.path}</li>"
         else
-          "<li>#{name}</li>"
+          "<li>#{item.path}</li>"
     confirmed:(item)->
         @close()
         @fileSelected(item)

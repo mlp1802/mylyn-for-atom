@@ -127,8 +127,8 @@ class Mylyn
                         finalPath
             @updateSelectedFile @mylyn.currentTask,file
             realPath = getRealFilePath file.path
-            atom.workspace.open realPath,{searchAllPanes:true}
-
+            #atom.workspace.open realPath,{searchAllPanes:true}
+            atom.workspace.open realPath
 
   updateSelectedFile:(currentTask,file)=>
           if !@isCurrentFile(file)
