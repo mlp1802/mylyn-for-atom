@@ -1,6 +1,6 @@
 {
   "name": "mylyn-for-atom",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "main": "./lib/main",
   "description": "Task focused development in Atom, based on Mylyn for Eclipse",
   "repository": "https://github.com/mlp1802/mylyn-for-atom",
