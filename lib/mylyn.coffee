@@ -66,11 +66,10 @@ class Mylyn
       @save()
       task
 
-  reloadTreeView:()=>
+  reloadTreeView:(updateRoots)=>
       @view.treeViewOpenPromise
                 .then (view)=>
                       selectedPath = view.selectedEntry()?.getPath()
-                      view.updateRoots()
                       if selectedPath
                         view.selectEntryForPath selectedPath
                       @rebuild()
@@ -248,12 +247,15 @@ class Mylyn
     span = $(e).find("span").first()
     path = $(span).attr("data-path")
     if !isAllowed(path)
-        $(e).remove()
+        #$(e).remove()
+        $(e).hide()
         #$(e).replaceWith($('<h5>' + e.innerHTML + '</h5>'));
         #$(e).addClass("mylyn-hidden")
 
         #$(e).addClass("status-ignored")
         #$(e).removeClass("entry")
+    else
+        $(e).show()
     #else
 
     #    $(e).removeClass("mylyn-hidden")
@@ -275,7 +277,7 @@ class Mylyn
       files.each (i,e)=>@hideFile(e)
 
   listenForEvents:(entry)->
-      if entry.onDidExpand
+      if entry.onDidExpand&&!@isRebuilding
           entry.onDidExpand((d)=>@rebuild())
 
       if entry.entries
@@ -284,12 +286,17 @@ class Mylyn
           #@out("entr")(entry.entries)
           #entry.entries.forEach @listenForEvents
   rebuild:()=>
-
+    @isRebuilding = true
     @hideDirs()
     @hideFiles()
+    # if @mylyn.filterOn
+    #   @view.treeView.roots.forEach (root)=>
+    #       if root.expand
+    #           console.log "EXPAND"
+    #           #root.expand(true)
     @view.treeView.roots.forEach (root)=>@listenForEvents root.directory
     rootDir = @view.treeView.roots[0].directory
-
+    @isRebuilding = false
   getDomFiles: =>$(".tree-view [is='tree-view-file']")
 
 
@@ -317,7 +324,12 @@ class Mylyn
     @mylyn.filterOn = !@mylyn.filterOn
     if @mylyn.filterOn
       @mylyn.enabled = true
-    @reloadTreeView()
+      @reloadTreeView()
+    else
+      @view.treeViewOpenPromise
+                .then (view)=>
+                      selectedPath = view.selectedEntry()?.getPath()
+                      view.updateRoots()
 
 
 module.exports =
