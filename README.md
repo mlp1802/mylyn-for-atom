@@ -44,7 +44,7 @@ mylyn:delete-all-tasks
 ```
 Deletes all tasks
 ```
-mylyn:delete-task'
+mylyn:delete-task
 ```
 Delete a specific task
 ```
