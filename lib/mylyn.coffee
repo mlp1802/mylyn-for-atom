@@ -9,6 +9,7 @@ view = null
 class Mylyn
   observer:null
   constructor:(@view,@mylyn)->
+    console.log("VIEW IS ",@view)
     if !@mylyn
         @mylyn =
               lastSelectedFile:undefined
@@ -102,6 +103,8 @@ class Mylyn
       @mylyn.currentTask = task
       @save()
       @reloadTreeView()
+      #@expandFolders()
+
 
   currentTask:()=>@mylyn.currentTask
   currentFile:()=>@currentTask().selectedFile
@@ -270,26 +273,47 @@ class Mylyn
   hideDirs:=>
       dirs = @getDomDirs()
       dirs.each (i,e)=>@hideDir(e)
+
   hideFiles:=>
       files = @getDomFiles()
       files.each (i,e)=>@hideFile(e)
 
+
   listenForEvents:(entry)->
       if entry.onDidExpand
-          entry.onDidExpand((d)=>@rebuild())
+          entry.onDidExpand (d)=>
+              if !@isExpanding
+                @rebuild()
 
       if entry.entries
           #$.each entry.entries, (key, value)->console.log(key, value)
           $.each entry.entries, (key, value)=>@listenForEvents value
           #@out("entr")(entry.entries)
           #entry.entries.forEach @listenForEvents
-  rebuild:()=>
 
+  expandFolders:()=>
+      @isExpanding = true
+      @getDomDirs().each (d,e)->
+          if $(e).hasClass("collapsed")
+              $(e).click()
+      @isExpanding = false
+
+  rebuild:()=>
     @hideDirs()
     @hideFiles()
     @view.treeView.roots.forEach (root)=>@listenForEvents root.directory
     rootDir = @view.treeView.roots[0].directory
+    @expandFolders()
 
+
+        #$(e).removeClass("collapsed")
+        #$(e).addClass("expanded")
+    # if @mylyn.filterOn
+    #   @view.treeView.roots.forEach (root)=>
+    #       console.log "EXPAND",root
+    # if root.expand
+    #     console.log "EXPAND"
+    #     #root.expand(true)
   getDomFiles: =>$(".tree-view [is='tree-view-file']")
 
 
