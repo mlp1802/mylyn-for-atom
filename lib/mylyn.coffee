@@ -1,15 +1,26 @@
 {TaskList,FileList} = require("./TaskList")
+{Task} = require 'atom'
 {$} = require('atom-space-pen-views')
 {saveState} = require("./common")
-
 {MessagePanelView, PlainMessageView, LineMessageView} = require 'atom-message-panel'
 _ = require "lodash"
 InputDialog = require '@aki77/atom-input-dialog'
 view = null
+
+getFileName = (path)->
+  files = path.split("/")
+  fileName = _.last(files)
+  fileName
+  
 class Mylyn
   observer:null
   constructor:(@view,@mylyn)->
-    console.log("VIEW IS ",@view)
+    console.log(@mylyn)
+    files = _.flatten @mylyn?.tasks?.map (t)->t.files
+    _.forEach files,((f)->f.fileName = getFileName f.path)
+      # body...
+        #f.fileName = getFilename f.path
+    console.log(files)
     if !@mylyn
         @mylyn =
               lastSelectedFile:undefined
@@ -68,13 +79,15 @@ class Mylyn
       task
 
   reloadTreeView:()=>
-      @view.treeViewOpenPromise
-                .then (view)=>
-                      selectedPath = view.selectedEntry()?.getPath()
-                      view.updateRoots()
-                      if selectedPath
-                        view.selectEntryForPath selectedPath
-                      @rebuild()
+      reloadTask = =>
+          @view.treeViewOpenPromise
+                    .then (view)=>
+                          selectedPath = view.selectedEntry()?.getPath()
+                          view.updateRoots()
+                          if selectedPath
+                            view.selectEntryForPath selectedPath
+                          @rebuild()
+      setTimeout reloadTask,10
 
   selectFile:(callback)=>
     if @mylyn.currentTask
@@ -174,11 +187,13 @@ class Mylyn
 
 
   addFile:(path)=>
+        fileName = getFileName path
         startPoints = 400
         @getFiles().forEach (f)->
             f.points = f.points-5
         if !@hasFile path
             file =
+                fileName:fileName
                 path:path
                 points:startPoints
             @getFiles().push(file)
@@ -292,18 +307,19 @@ class Mylyn
           #entry.entries.forEach @listenForEvents
 
   expandFolders:()=>
-      @isExpanding = true
-      @getDomDirs().each (d,e)->
-          if $(e).hasClass("collapsed")
-              $(e).click()
-      @isExpanding = false
+      if @filterOn()
+        @isExpanding = true
+        @getDomDirs().each (d,e)->
+            if $(e).hasClass("collapsed")
+                $(e).click()
+        @isExpanding = false
 
   rebuild:()=>
-    @hideDirs()
-    @hideFiles()
-    @view.treeView.roots.forEach (root)=>@listenForEvents root.directory
-    rootDir = @view.treeView.roots[0].directory
-    @expandFolders()
+      @hideDirs()
+      @hideFiles()
+      @view.treeView.roots.forEach (root)=>@listenForEvents root.directory
+      rootDir = @view.treeView.roots[0].directory
+      @expandFolders()
 
 
         #$(e).removeClass("collapsed")

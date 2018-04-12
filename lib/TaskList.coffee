@@ -34,7 +34,7 @@ class TaskList extends SelectListView
 
 
 
-    getFilterKey:->"name"
+    getFilterKey:->"path"
     viewForItem:(item)->
         name  = item.name
         if @currentTask!=null && item.name==@currentTask.name
@@ -77,7 +77,8 @@ class FileList extends SelectListView
       @modal.destroy()
       @focusActivePane()
 
-    getFilterKey:->"path"
+    getFilterKey:()->
+        "fileName"
     viewForItem:(item)->
         name  = _.last(item.path.split("/"))
         if @args.currentFilePath==item.path
