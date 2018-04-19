@@ -11,7 +11,7 @@ getFileName = (path)->
   files = path.split("/")
   fileName = _.last(files)
   fileName
-  
+
 class Mylyn
   observer:null
   constructor:(@view,@mylyn)->
@@ -188,7 +188,7 @@ class Mylyn
 
   addFile:(path)=>
         fileName = getFileName path
-        startPoints = 400
+        startPoints = 800
         @getFiles().forEach (f)->
             f.points = f.points-5
         if !@hasFile path

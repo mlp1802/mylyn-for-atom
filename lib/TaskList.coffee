@@ -34,7 +34,7 @@ class TaskList extends SelectListView
 
 
 
-    getFilterKey:->"path"
+    getFilterKey:->"name"
     viewForItem:(item)->
         name  = item.name
         if @currentTask!=null && item.name==@currentTask.name
