@@ -20,7 +20,6 @@ class Mylyn
     _.forEach files,((f)->f.fileName = getFileName f.path)
       # body...
         #f.fileName = getFilename f.path
-    console.log(files)
     if !@mylyn
         @mylyn =
               lastSelectedFile:undefined
@@ -61,7 +60,6 @@ class Mylyn
       @save()
 
   filterOn: =>
-    #return false
     @mylyn.filterOn&@mylyn.currentTask!=null&@mylyn.enabled
 
   focusActivePane:=>
@@ -120,7 +118,7 @@ class Mylyn
 
 
   currentTask:()=>@mylyn.currentTask
-  currentFile:()=>@currentTask().selectedFile
+  currentFile:()=>@currentTask().selectedfile
   lastSelectedFile:()=>@currentTask().lastSelectedFile
   currentFilePath:()=>_.get(@currentFile(),"path")
   lastSelectedFilePath:()=>_.get(@lastSelectedFile(),"path")
@@ -128,7 +126,9 @@ class Mylyn
 
   switchFile:()=>
     @selectFile (file)=>
+          # console.log "LAST LOL SELECT",@lastSelectedFile()
           if !@isCurrentFile file
+            # @updateSelectedFile @mylyn.currentTask,@currentFile()
             getRealFilePath = (path)=>
                       projectRoot = _.first path.split("/")
                       projectPaths = atom.project.getPaths()
@@ -141,7 +141,7 @@ class Mylyn
                         allPathArray = _.tail(_.concat rootArray,restOfProject)
                         finalPath = _.reduce allPathArray, ((acc,p)->acc+"/"+p),""
                         finalPath
-            @updateSelectedFile @mylyn.currentTask,file
+            @updatePoints file
             realPath = getRealFilePath file.path
             #atom.workspace.open realPath,{searchAllPanes:true}
             atom.workspace.open realPath
@@ -186,11 +186,17 @@ class Mylyn
     @getFiles().find (f)=>f.path is file
 
 
+  updatePoints:(file)=>
+        @getFiles().forEach (f)->
+            f.points = f.points-5
+        startPoints = 800
+        file.points = startPoints
+
   addFile:(path)=>
         fileName = getFileName path
         startPoints = 800
-        @getFiles().forEach (f)->
-            f.points = f.points-5
+        # @getFiles().forEach (f)->
+            # f.points = f.points-5
         if !@hasFile path
             file =
                 fileName:fileName
@@ -198,11 +204,12 @@ class Mylyn
                 points:startPoints
             @getFiles().push(file)
             @updateSelectedFile @mylyn.currentTask, file
+            @updatePoints file
             return false
           else
             file = @getFile(path)
-            file.points=startPoints
             @updateSelectedFile @mylyn.currentTask, file
+            @updatePoints file
             return true
 
 
