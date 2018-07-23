@@ -80,7 +80,7 @@ class Mylyn
       reloadTask = =>
           @view.treeViewOpenPromise
                     .then (view)=>
-                          selectedPath = view.selectedEntry()?.getPath()
+                          selectedPath = view?.selectedEntry()?.getPath()
                           view.updateRoots()
                           if selectedPath
                             view.selectEntryForPath selectedPath
